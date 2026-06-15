@@ -1,0 +1,22 @@
+[package]
+name = "agent-sandbox"
+version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+
+[lints]
+workspace = true
+
+# Sandbox d'exécution (US-020) : confinement FS kernel-level (Landlock) + proxy
+# réseau allow-list. Linux-first ; dégradation explicite ailleurs (AC3).
+[dependencies]
+tokio.workspace = true
+thiserror.workspace = true
+
+# Landlock = Linux uniquement. Hors Linux, le sandbox FS dégrade en désactivé.
+[target.'cfg(target_os = "linux")'.dependencies]
+landlock.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
