@@ -9,6 +9,7 @@ exclude = ["spikes"]
 edition = "2024"
 rust-version = "1.95"
 publish = false
+license = "GPL-3.0-or-later"
 
 # Lints clippy obligatoires (mandat global). panic/unimplemented/dbg = deny ;
 # unwrap/expect = warn (jamais deny, cf. CLAUDE.md / tokio #3887).

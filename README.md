@@ -5,7 +5,7 @@
   <img alt="Rust" src="https://img.shields.io/badge/Rust-1.95-orange?logo=rust">
   <img alt="Platform" src="https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20next-informational">
   <img alt="Provider" src="https://img.shields.io/badge/provider-ChatGPT%20subscription-black?logo=openai">
-  <img alt="License" src="https://img.shields.io/badge/license-TBD-lightgrey">
+  <a href="LICENSE"><img alt="License" src="https://img.shields.io/badge/license-GPL--3.0--or--later-blue"></a>
 </p>
 
 **A native, model-agnostic AI coding agent that lives in your terminal.** `numen` opens straight in your shell, streams a model, runs real tools (read, grep, edit, bash), and loops until the work is done, all from a single Rust binary with no Node runtime underneath.
@@ -286,9 +286,12 @@ No. It is an independent Rust implementation inspired by Claude Code's internal 
 **Is it ready for daily use?**
 It is dogfooded daily by its author on Linux, but it is early: one provider, no releases, Linux-first, and a revocable auth channel. Build from source and expect rough edges.
 
+**Why GPL-3.0?**
+Numen is free and open source by design, and copyleft keeps it that way: improvements to the agent stay in the commons, and the shared core cannot be forked into a closed product.
+
 **How does it relate to Paneflow?**
 Paneflow runs CLI agents in parallel GPU panes; Numen is one such agent. The deeper plan is for Paneflow to embed `agent-core` in-process and render its events natively (GPU diffs, plan trees). That embedding is future work; the decoupling that makes it possible exists today.
 
 ## License
 
-Not yet chosen. Until a license file is added, no usage rights are granted beyond reading the source. This will be settled before the first release.
+[GPL-3.0-or-later](LICENSE). Numen is free and open source by design, and copyleft keeps it that way: improvements stay in the commons.
