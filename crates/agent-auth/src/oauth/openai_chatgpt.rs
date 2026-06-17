@@ -42,6 +42,33 @@ pub const JWT_CLAIM_NAMESPACE: &str = "https://api.openai.com/auth";
 /// l'`originator` contre une liste connue — à tester au premier run (ADR-10).
 pub const ORIGINATOR: &str = "numen";
 
+/// Fallback `originator` si le backend rejette `numen` (US-021, unhappy path) :
+/// emprunter l'identité du Codex CLI officiel OSS, déjà sur la liste blanche du
+/// backend. Bascule à chaud via `NUMEN_ORIGINATOR` (pas de recompilation).
+pub const ORIGINATOR_FALLBACK: &str = "codex_cli_rs";
+
+/// `originator` effectif envoyé sur la requête d'INFÉRENCE (US-021). Lit
+/// `NUMEN_ORIGINATOR` (permet de basculer `numen` ↔ `codex_cli_rs` pendant le
+/// spike sans recompiler) ; défaut `ORIGINATOR`. N'affecte PAS le flow OAuth :
+/// `build_authorize_url` garde `ORIGINATOR` (changer l'auth casserait le flow
+/// validé en live, hors scope).
+pub fn originator() -> String {
+    match std::env::var("NUMEN_ORIGINATOR") {
+        Ok(v) if !v.trim().is_empty() => v.trim().to_string(),
+        _ => ORIGINATOR.to_string(),
+    }
+}
+
+/// Sélection déterministe du fallback (US-021, AC2) : `numen` si le backend
+/// l'accepte, sinon `codex_cli_rs` (whitelisté). Pur/testable, indépendant de l'env.
+pub fn originator_for(numen_accepted: bool) -> &'static str {
+    if numen_accepted {
+        ORIGINATOR
+    } else {
+        ORIGINATOR_FALLBACK
+    }
+}
+
 // ───────────────── Constantes inférence (backend ChatGPT, Responses API) ─────────────────
 
 pub const CHATGPT_BASE_URL: &str = "https://chatgpt.com/backend-api/codex";
@@ -241,7 +268,7 @@ pub fn responses_request(cred: &OAuthCredential) -> Result<RequestSpec, AuthErro
                 format!("Bearer {}", cred.access.expose()),
             ),
             ("chatgpt-account-id".to_string(), account_id.to_string()),
-            ("originator".to_string(), ORIGINATOR.to_string()),
+            ("originator".to_string(), originator()),
             ("OpenAI-Beta".to_string(), OPENAI_BETA_SSE.to_string()),
             ("accept".to_string(), "text/event-stream".to_string()),
             ("content-type".to_string(), "application/json".to_string()),
@@ -627,6 +654,17 @@ mod tests {
         assert_eq!(h["chatgpt-account-id"], "acct_7");
         assert_eq!(h["originator"], "numen");
         assert_eq!(h["OpenAI-Beta"], "responses=experimental");
+    }
+
+    // US-021 AC2 : sélection du fallback `originator`. `numen` par défaut ;
+    // `codex_cli_rs` si le backend rejette `numen` (à trancher en live).
+    #[test]
+    fn originator_fallback_selection() {
+        assert_eq!(originator_for(true), "numen");
+        assert_eq!(originator_for(false), "codex_cli_rs");
+        assert_eq!(ORIGINATOR_FALLBACK, "codex_cli_rs");
+        // env non défini → défaut `numen` (le run live le surchargera si besoin).
+        assert_eq!(originator(), "numen");
     }
 
     #[test]
